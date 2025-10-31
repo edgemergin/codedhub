@@ -5,173 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CodEd Hub LLC — Innovative software & AI</title>
   <meta name="description" content="CodEd Hub LLC — Innovative software & AI solutions. Registered in Wyoming, USA." />
-  <meta name="color-scheme" content="dark light">
 
   <style>
-    :root{
-      --bg-1:#0e1116;         /* глубокий «не совсем чёрный» */
-      --bg-2:#121826;         /* лёгкий холодный градиент */
-      --fg:#dfe5ee;           /* основной текст */
-      --muted:#9aa7bd;        /* вторичный текст */
-      --accent:#7ac4ff;       /* акцент ссылок/кнопки */
-      --card:#0f1522cc;       /* полупрозрачная карточка */
-      --radius:18px;
-      --shadow:0 10px 40px rgba(0,0,0,.45);
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(circle at center, #161a23 0%, #0c0e13 100%);
+      color: #e7ecf5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      flex-direction: column;
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeIn 1.6s ease forwards;
     }
 
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      color:var(--fg);
-      background:
-        radial-gradient(1200px 700px at 80% -10%, #1a2236 0%, transparent 60%),
-        radial-gradient(900px 600px at 10% 110%, #1b2236 0%, transparent 60%),
-        linear-gradient(180deg, var(--bg-2), var(--bg-1));
-      display:grid;
-      place-items:center;
-      padding:32px;
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.4px;
     }
 
-    .wrap{
-      width:min(680px, 92vw);
-      padding:40px 36px;
-      background:var(--card);
-      backdrop-filter: blur(8px) saturate(110%);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      transform: translateY(8px);
-      opacity:0;
-      animation:fadeUp .9s ease-out .15s forwards;
+    p {
+      margin: 0.2rem 0;
+      color: #aab3c3;
+      font-size: 1rem;
     }
 
-    h1{
-      margin:0 0 .25rem 0;
-      font-size: clamp(28px, 4vw, 40px);
-      letter-spacing:.3px;
-      text-align:center;
+    a {
+      color: #7ac4ff;
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(122,196,255,0.4);
+    }
+    a:hover {
+      border-bottom-color: rgba(122,196,255,0.8);
     }
 
-    .tag{
-      color:var(--muted);
-      text-align:center;
-      margin:0 0 1.4rem 0;
-      font-size:clamp(14px, 1.8vw, 16px);
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
 
-    .list{
-      display:grid;
-      gap:.35rem;
-      margin:1.2rem 0 1.6rem;
-      justify-items:center;
-      color:var(--muted);
-      font-size:clamp(14px, 1.8vw, 16px);
-    }
-
-    .actions{
-      display:flex;
-      gap:.6rem;
-      justify-content:center;
-      margin-top:.5rem;
-      opacity:0;
-      animation:fade .9s ease-out .45s forwards;
-    }
-
-    .btn{
-      --pad: 10px 16px;
-      border:1px solid rgba(255,255,255,.12);
-      padding:var(--pad);
-      border-radius:12px;
-      color:var(--fg);
-      text-decoration:none;
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      transition:transform .15s ease, border-color .15s ease, background .15s ease;
-      will-change:transform;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(122,196,255,.5); }
-    .btn.primary{
-      border-color: rgba(122,196,255,.55);
-      background: linear-gradient(180deg, rgba(122,196,255,.22), rgba(122,196,255,.12));
-    }
-
-    .foot{
-      margin-top:1.2rem;
-      color:var(--muted);
-      text-align:center;
-      font-size: 13.5px;
-      opacity:.9;
-    }
-
-    .email-mask{
-      user-select:text;
-      letter-spacing:.2px;
-      border-bottom:1px dotted rgba(255,255,255,.18);
-    }
-
-    @keyframes fadeUp{ to{ opacity:1; transform:none; } }
-    @keyframes fade{ to{ opacity:1; } }
-
-    /* Уважение к пользователям с отключённой анимацией */
-    @media (prefers-reduced-motion: reduce){
-      .wrap,.actions{ animation:none; opacity:1; transform:none; }
-      .btn{ transition:none; }
+    .note {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #7b8597;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-  <main class="wrap" role="main" aria-labelledby="brand">
-    <h1 id="brand">CodEd Hub LLC</h1>
-    <p class="tag">Innovative software &amp; AI solutions</p>
+  <h1>CodEd Hub LLC</h1>
+  <p>Innovative software &amp; AI solutions.</p>
+  <p>Registered in Wyoming, USA.</p>
 
-    <div class="list" aria-describedby="details">
-      <div id="details">Registered in Wyoming, USA</div>
+  <p>
+    Contact: <a id="email" href="#" rel="nofollow noopener">loading...</a>
+    <noscript>info [at] codedhub [dot] net</noscript>
+  </p>
 
-      <!-- Защищённый e-mail: собирается на клиенте -->
-      <div id="contact">
-        Contact:
-        <a id="emailLink" class="email-mask" href="#" rel="nofollow noopener" data-user="info" data-domain="codedhub" data-tld="net">
-          <!-- адрес будет подставлен JS -->
-        </a>
-        <noscript>
-          <!-- Фолбэк без JS: читаемо людям, бесполезно для простых ботов -->
-          <span class="email-mask">info [at] codedhub [dot] net</span>
-        </noscript>
-      </div>
-    </div>
-
-    <div class="actions">
-      <a id="mailtoBtn" class="btn primary" href="#" rel="nofollow noopener">Email us</a>
-      <a class="btn" href="/" aria-label="Home">Home</a>
-    </div>
-
-    <p class="foot">Website under development</p>
-  </main>
+  <p class="note">Website under development</p>
 
   <script>
-    // Простая и надёжная обфускация: адрес не встречается в исходном HTML.
-    (function(){
-      const el = document.getElementById('emailLink');
-      if(!el) return;
-
-      // Берём части адреса из data-атрибутов
-      const user   = el.dataset.user;     // "info"
-      const domain = el.dataset.domain;   // "codedhub"
-      const tld    = el.dataset.tld;      // "net"
-
-      // Собираем строку с небольшой задержкой (сложнее для «ленивых» парсеров)
-      const build = () => {
-        const addr = user + '@' + domain + '.' + tld;
-        el.textContent = addr;
-        el.setAttribute('href', 'mailto:' + addr);
-
-        const btn = document.getElementById('mailtoBtn');
-        if (btn) btn.setAttribute('href', 'mailto:' + addr);
-      };
-
-      // Мини-рандом задержки и микротаск — ещё один слой «шума» для ботов
-      const jitter = Math.floor(50 + Math.random()*120);
-      setTimeout(build, jitter);
+    // Защищённый e-mail: формируется на клиенте из частей
+    (function() {
+      const user = "info";
+      const domain = "codedhub";
+      const tld = "net";
+      const address = user + "@" + domain + "." + tld;
+      const el = document.getElementById("email");
+      el.textContent = address;
+      el.href = "mailto:" + address;
     })();
   </script>
 </body>
