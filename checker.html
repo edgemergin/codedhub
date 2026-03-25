@@ -8,7 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;700;800&display=swap');
   :root {
     --bg: #0a0a0f; --surface: #111118; --border: #1e1e2e;
-    --accent: #00ff88; --accent2: #ff3366; --text: #e8e8f0; --muted: #555570;
+    --accent: #00ff88; --text: #e8e8f0; --muted: #555570;
     --free: #00ff88; --taken: #ff3366; --unknown: #ffaa00;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,14 +65,14 @@
   .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
   .export-row { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
   .domain-cell { color: var(--text); font-weight: 600; }
-  .error-msg { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--taken); background: rgba(255,51,102,0.08); border: 1px solid rgba(255,51,102,0.2); border-radius: 8px; padding: 12px 16px; margin-top: 12px; display: none; }
+  .error-msg { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--taken); background: rgba(255,51,102,0.08); border: 1px solid rgba(255,51,102,0.2); border-radius: 8px; padding: 12px 16px; margin-top: 12px; display: none; white-space: pre-wrap; }
   @media (max-width: 600px) { .fields-row { grid-template-columns: 1fr; } h1 { font-size: 1.6rem; } }
 </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <div class="subtitle">// godaddy api v1</div>
+    <div class="subtitle">// godaddy api v1 via cloudflare worker</div>
     <h1>Domain <span>Checker</span></h1>
   </header>
 
@@ -128,6 +128,7 @@
 </div>
 
 <script>
+  const WORKER_URL = 'https://billowing-block-81e2.edgemergin.workers.dev';
   let results = [];
 
   function parseDomains(raw) {
@@ -144,6 +145,19 @@
   function setProgress(val) { document.getElementById('progressBar').style.width = val + '%'; }
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+  async function checkBatch(batch, auth) {
+    const url = `${WORKER_URL}/?domain=${encodeURIComponent(batch.join(','))}`;
+    const response = await fetch(url, {
+      headers: { 'Authorization': auth, 'Accept': 'application/json' }
+    });
+
+    if (response.status === 401) throw new Error('AUTH');
+    if (response.status === 429) throw new Error('RATELIMIT');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    return await response.json();
+  }
+
   async function startCheck() {
     hideError();
     const apiKey = document.getElementById('apiKey').value.trim();
@@ -154,6 +168,7 @@
     const domains = parseDomains(raw);
     if (domains.length === 0) { showError('Список доменов пустой.'); return; }
 
+    const auth = `sso-key ${apiKey}:${apiSecret}`;
     results = [];
     document.getElementById('checkBtn').disabled = true;
     document.getElementById('resultsBlock').style.display = 'none';
@@ -175,46 +190,50 @@
 
     const BATCH = 50;
     let done = 0;
+    let stopped = false;
 
     for (let i = 0; i < domains.length; i += BATCH) {
+      if (stopped) break;
       const batch = domains.slice(i, i + BATCH);
       setStatus(`Проверяю ${i + 1}–${Math.min(i + BATCH, domains.length)} из ${domains.length}...`);
 
       try {
-        const url = `https://api.godaddy.com/v1/domains/available?domain=${encodeURIComponent(batch.join(','))}&checkType=FAST&forTransfer=false`;
-        const response = await fetch(url, {
-          headers: { 'Authorization': `sso-key ${apiKey}:${apiSecret}`, 'Accept': 'application/json' }
-        });
-
-        if (response.status === 401) { showError('Ошибка авторизации — проверь API Key и Secret.'); break; }
-        if (response.status === 429) { showError('Rate limit — подожди минуту и попробуй снова.'); break; }
-
-        const data = await response.json();
+        const data = await checkBatch(batch, auth);
         let items = Array.isArray(data) ? data : data.domains ? data.domains : [data];
 
         items.forEach(item => {
-          if (!item.domain) return;
+          if (!item || !item.domain) return;
           const price = item.price ? (item.price / 1000000).toFixed(2) : null;
           const st = item.available ? 'free' : 'taken';
           updateRow(item.domain, st, price);
           const r = results.find(x => x.domain === item.domain);
           if (r) { r.status = st; r.price = price; }
         });
+
       } catch (err) {
-        batch.forEach(d => {
-          updateRow(d, 'unknown', null);
-          const r = results.find(x => x.domain === d);
-          if (r) r.status = 'unknown';
-        });
+        if (err.message === 'AUTH') {
+          showError('Ошибка авторизации — проверь API Key и Secret.');
+          stopped = true;
+        } else if (err.message === 'RATELIMIT') {
+          showError('Rate limit — подожди минуту и попробуй снова.');
+          stopped = true;
+        } else {
+          // помечаем батч как unknown, продолжаем
+          batch.forEach(d => {
+            updateRow(d, 'unknown', null);
+            const r = results.find(x => x.domain === d);
+            if (r) r.status = 'unknown';
+          });
+        }
       }
 
       done += batch.length;
       setProgress(Math.round(done / domains.length * 100));
       updateStats();
-      if (i + BATCH < domains.length) await sleep(700);
+      if (!stopped && i + BATCH < domains.length) await sleep(700);
     }
 
-    setStatus(`✓ Готово — проверено ${domains.length} доменов`);
+    if (!stopped) setStatus(`✓ Готово — проверено ${domains.length} доменов`);
     document.getElementById('checkBtn').disabled = false;
   }
 
